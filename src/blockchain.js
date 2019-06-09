@@ -60,7 +60,7 @@ class Blockchain {
         this.pendingTransactions.push(Transaction);
     }
 
-    getBalanceAdress(address) {
+    getBalanceAddress(address) {
         let balance = 0;
 
         for(let block of this.chain) {
@@ -95,18 +95,18 @@ console.log(forium);
 
 forium.minePendingTransactions('egw');
 console.log(forium);
-console.log('Balance of adr1: ' + forium.getBalanceAdress('adr1'));
-console.log('Balance of adr2: ' + forium.getBalanceAdress('adr2'));
-console.log('Balance of egw: ' + forium.getBalanceAdress('egw'));
+console.log('Balance of adr1: ' + forium.getBalanceAddress('adr1'));
+console.log('Balance of adr2: ' + forium.getBalanceAddress('adr2'));
+console.log('Balance of egw: ' + forium.getBalanceAddress('egw'));
 
 forium.minePendingTransactions('egw');
 console.log(forium);
-console.log('Balance of adr1: ' + forium.getBalanceAdress('adr1'));
-console.log('Balance of adr2: ' + forium.getBalanceAdress('adr2'));
-console.log('Balance of egw: ' + forium.getBalanceAdress('egw'));
+console.log('Balance of adr1: ' + forium.getBalanceAddress('adr1'));
+console.log('Balance of adr2: ' + forium.getBalanceAddress('adr2'));
+console.log('Balance of egw: ' + forium.getBalanceAddress('egw'));
 
 forium.minePendingTransactions('egw');
 console.log(forium);
-console.log('Balance of adr1: ' + forium.getBalanceAdress('adr1'));
-console.log('Balance of adr2: ' + forium.getBalanceAdress('adr2'));
-console.log('Balance of egw: ' + forium.getBalanceAdress('egw'));
+console.log('Balance of adr1: ' + forium.getBalanceAddress('adr1'));
+console.log('Balance of adr2: ' + forium.getBalanceAddress('adr2'));
+console.log('Balance of egw: ' + forium.getBalanceAddress('egw'));

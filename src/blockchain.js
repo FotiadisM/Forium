@@ -9,16 +9,16 @@ class Transaction {
 }
 
 class Block {
-    constructor(timestamp, transactions, previousHash = '') {
+    constructor(timestamp, transaction, previousHash = '') {
         this.timestamp = timestamp;
-        this.transactions = transactions;
+        this.transaction = transaction;
         this.previousHash = previousHash;
         this.hash = this.calculateHash();
         this.nonce = 0;
     }
 
     calculateHash() {
-        return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.transactions) + this.nonce).toString();
+        return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.transaction) + this.nonce).toString();
     }
 
     mineBlock(difficulty) {
@@ -48,13 +48,12 @@ class Blockchain {
     }
 
     minePendingTransactions(miningRewardAddress) {
-        let block = new Block(Date.now(), this.pendingTransactions);
+        let block = new Block(Date.now(), this.pendingTransactions[0], this.chain[this.chain.length-1].hash);
         block.mineBlock(this.difficulty);
         this.chain.push(block);
 
-        this.pendingTransactions = [
-            new Transaction(null, miningRewardAddress, this.miningReward)
-        ];
+        this.pendingTransactions.shift();
+        this.pendingTransactions.push(new Transaction(null, miningRewardAddress, this.miningReward));
     }
 
     createTransaction(Transaction) {
@@ -64,14 +63,12 @@ class Blockchain {
     getBalanceAdress(address) {
         let balance = 0;
 
-        for(const block of this.chain) {
-            for(const transaction of block.transactions) {
-                if(transaction.fromAddress === address) {
-                    balance -= transaction.amount;
-                }
-                if(transaction.toAddress === address) {
-                    balance += transaction.amount;
-                }
+        for(let block of this.chain) {
+            if(block.transaction.fromAddress === address) {
+                balance -= block.transaction.amount;
+            }
+            if(block.transaction.toAddress === address) {
+                balance += block.transaction.amount;
             }
         }
 
@@ -97,19 +94,19 @@ forium.createTransaction(new Transaction('adr2', 'adr1', 50));
 console.log(forium);
 
 forium.minePendingTransactions('egw');
+console.log(forium);
 console.log('Balance of adr1: ' + forium.getBalanceAdress('adr1'));
 console.log('Balance of adr2: ' + forium.getBalanceAdress('adr2'));
 console.log('Balance of egw: ' + forium.getBalanceAdress('egw'));
-console.log(forium);
 
 forium.minePendingTransactions('egw');
+console.log(forium);
 console.log('Balance of adr1: ' + forium.getBalanceAdress('adr1'));
 console.log('Balance of adr2: ' + forium.getBalanceAdress('adr2'));
 console.log('Balance of egw: ' + forium.getBalanceAdress('egw'));
-console.log(forium);
 
 forium.minePendingTransactions('egw');
+console.log(forium);
 console.log('Balance of adr1: ' + forium.getBalanceAdress('adr1'));
 console.log('Balance of adr2: ' + forium.getBalanceAdress('adr2'));
 console.log('Balance of egw: ' + forium.getBalanceAdress('egw'));
-console.log(forium);

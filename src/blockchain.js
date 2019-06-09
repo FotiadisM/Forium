@@ -1,10 +1,37 @@
 const SHA256 = require('crypto-js/sha256');
+const EC = require('elliptic').ec;
+const ec = new EC('secp256k1');
 
 class Transaction {
     constructor(fromAddress, toAddress, amount) {
         this.fromAddress = fromAddress;
         this.toAddress = toAddress;
         this.amount = amount;
+        this.signature = '';
+    }
+
+    calculateHash() {
+        return SHA256(this.fromAddress + this.toAddress + this.amount).toString();
+    }
+
+    signTransaction(signingKey) {
+        if(signingKey.getPublic('hex') !== this.fromAddress) {
+            throw new Error('You cannot sign transaction from other wallets!');
+        }
+        const transactionHash = this.calculateHash();
+        const signature = signingKey.sign(transactionHash, 'base64');
+        this.signature = signature.toDER('hex');
+    }
+
+    isValid() {
+        if(this.fromAddress === null) {
+            return true;
+        }
+        if(!this.signature || this.signature.length === 0) {
+            throw new Error('Transaction has no signature');
+        }
+        const publicKey = ec.keyFromPublic(this.fromAddress, 'hex'); 
+        return publicKey.verify(this.calculateHash(), this.signature);
     }
 }
 
@@ -26,6 +53,13 @@ class Block {
             this.nonce++;
             this.hash = this.calculateHash();
         }
+    }
+
+    hasValidTransaction() {
+        if(!this.transaction.isValid()) {
+            return false;
+        }
+        return true;
     }
 }
 
@@ -56,8 +90,14 @@ class Blockchain {
         this.pendingTransactions.push(new Transaction(null, miningRewardAddress, this.miningReward));
     }
 
-    createTransaction(Transaction) {
-        this.pendingTransactions.push(Transaction);
+    addTransaction(transaction) {
+        if(!transaction.fromAddress || !transaction.toAddress || !transaction.amount) {
+            throw new Error('Transaction must include from and to address and an amount');
+        }
+        if(!transaction.isValid()) {
+            throw new Error('Transaction is invalid');
+        }
+        this.pendingTransactions.push(transaction);
     }
 
     getBalanceAddress(address) {
@@ -83,30 +123,13 @@ class Blockchain {
             if(this.chain[i].previousHash !== this.chain[i-1].hash) {
                 return false;
             }
+            if(!this.chain[i].hasValidTransaction()) {
+                return false;
+            }
             return true;
         }
     }
 }
 
-let forium = new Blockchain();
-forium.createTransaction(new Transaction('adr1', 'adr2', 100));
-forium.createTransaction(new Transaction('adr2', 'adr1', 50));
-console.log(forium);
-
-forium.minePendingTransactions('egw');
-console.log(forium);
-console.log('Balance of adr1: ' + forium.getBalanceAddress('adr1'));
-console.log('Balance of adr2: ' + forium.getBalanceAddress('adr2'));
-console.log('Balance of egw: ' + forium.getBalanceAddress('egw'));
-
-forium.minePendingTransactions('egw');
-console.log(forium);
-console.log('Balance of adr1: ' + forium.getBalanceAddress('adr1'));
-console.log('Balance of adr2: ' + forium.getBalanceAddress('adr2'));
-console.log('Balance of egw: ' + forium.getBalanceAddress('egw'));
-
-forium.minePendingTransactions('egw');
-console.log(forium);
-console.log('Balance of adr1: ' + forium.getBalanceAddress('adr1'));
-console.log('Balance of adr2: ' + forium.getBalanceAddress('adr2'));
-console.log('Balance of egw: ' + forium.getBalanceAddress('egw'));
+module.exports.Blockchain = Blockchain;
+module.exports.Transaction = Transaction;

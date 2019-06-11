@@ -10,17 +10,17 @@ const publicKey = myKey.getPublic('hex');
 
 const trns1 = new Transaction(publicKey, 'public key here', 10);
 trns1.signTransaction(myKey);
-forium.addTransaction(trns1); 
+forium.addTransaction(trns1);
 
 
-console.log(forium);
-
-forium.minePendingTransactions(publicKey);
-console.log(forium);
-console.log('Balance of me: ' + forium.getBalanceAddress(publicKey));
-console.log('Balance of public key here: ' + forium.getBalanceAddress('public key here'));
+// console.log(forium);
 
 forium.minePendingTransactions(publicKey);
-console.log(forium);
-console.log('Balance of me: ' + forium.getBalanceAddress(publicKey));
-console.log('Balance of public key here: ' + forium.getBalanceAddress('public key here'));
+// console.log(forium);
+// console.log('Balance of me: ' + forium.getBalanceAddress(publicKey));
+// console.log('Balance of public key here: ' + forium.getBalanceAddress('public key here'));
+
+// forium.minePendingTransactions(publicKey);
+// console.log(forium);
+// console.log('Balance of me: ' + forium.getBalanceAddress(publicKey));
+// console.log('Balance of public key here: ' + forium.getBalanceAddress('public key here'));

@@ -18,8 +18,8 @@ class Transaction {
         if(signingKey.getPublic('hex') !== this.fromAddress) {
             throw new Error('You cannot sign transaction from other wallets!');
         }
-        const transactionHash = this.calculateHash();
-        const signature = signingKey.sign(transactionHash, 'base64');
+        let transactionHash = this.calculateHash();
+        let signature = signingKey.sign(transactionHash, 'base64');
         this.signature = signature.toDER('hex');
     }
 
@@ -30,22 +30,22 @@ class Transaction {
         if(!this.signature || this.signature.length === 0) {
             throw new Error('Transaction has no signature');
         }
-        const publicKey = ec.keyFromPublic(this.fromAddress, 'hex'); 
+        let publicKey = ec.keyFromPublic(this.fromAddress, 'hex');
         return publicKey.verify(this.calculateHash(), this.signature);
     }
 }
 
 class Block {
-    constructor(timestamp, transaction, previousHash = '') {
+    constructor(timestamp, transactions, previousHash = '') {
         this.timestamp = timestamp;
-        this.transaction = transaction;
+        this.transactions = transactions;
         this.previousHash = previousHash;
         this.hash = this.calculateHash();
         this.nonce = 0;
     }
 
     calculateHash() {
-        return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.transaction) + this.nonce).toString();
+        return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.transactions) + this.nonce).toString();
     }
 
     mineBlock(difficulty) {
@@ -53,11 +53,15 @@ class Block {
             this.nonce++;
             this.hash = this.calculateHash();
         }
+        console.log('Block mined')
+        console.log('nonce is: ' + this.nonce)
     }
 
     hasValidTransaction() {
-        if(!this.transaction.isValid()) {
-            return false;
+        for(let transaction of this.transactions) {
+            if(!transaction.isValid()) {
+                return false;
+            }
         }
         return true;
     }
@@ -82,17 +86,17 @@ class Blockchain {
     }
 
     minePendingTransactions(miningRewardAddress) {
-        let block = new Block(Date.now(), this.pendingTransactions[0], this.chain[this.chain.length-1].hash);
+        this.pendingTransactions.push(new Transaction(null, miningRewardAddress, this.miningReward));
+        let block = new Block(Date.now(), this.pendingTransactions, this.getLatestBlock().hash);
         block.mineBlock(this.difficulty);
         this.chain.push(block);
 
-        this.pendingTransactions.shift();
-        this.pendingTransactions.push(new Transaction(null, miningRewardAddress, this.miningReward));
+        this.pendingTransactions = [];
     }
 
     addTransaction(transaction) {
         if(!transaction.fromAddress || !transaction.toAddress || !transaction.amount) {
-            throw new Error('Transaction must include from and to address and an amount');
+            throw new Error('Transaction must include an address and an amount');
         }
         if(!transaction.isValid()) {
             throw new Error('Transaction is invalid');
@@ -104,11 +108,13 @@ class Blockchain {
         let balance = 0;
 
         for(let block of this.chain) {
-            if(block.transaction.fromAddress === address) {
-                balance -= block.transaction.amount;
-            }
-            if(block.transaction.toAddress === address) {
-                balance += block.transaction.amount;
+            for(let transaction of block.transactions) {
+                if(transaction.fromAddress === address) {
+                    balance -= transaction.amount;
+                }
+                if(transaction.toAddress === address) {
+                    balance += transaction.amount;
+                }
             }
         }
 
